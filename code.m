@@ -12,10 +12,162 @@
 %lab 20 practice 
 %ode45
 
-`
+
 clc;
 close all; 
 clear all; 
+
+
+
+%% Lagrange Interpolation 
+data_x = [1, -4, 0]; 
+
+data_y = [3, 13, -23]; 
+
+basis_poly(1) = 0;
+
+syms x; 
+
+
+for i = 1:length(data_x)
+
+    x_i = data_x(i);
+
+    my_prod = 1; 
+
+    %loops over all data points. 
+    for j =1:length(data_x)
+
+        %for each x_i it will loop over all the data
+        %and add to product. except when i = j
+
+        x_j = data_x(j);
+
+        if j ~= i
+
+            my_prod = my_prod * (x - x_j) / (x_i - x_j)
+        
+        end
+
+    end
+    basis_poly(i) = my_prod;
+end
+
+lagrange_poly = 0; 
+
+
+for k=1:length(data_x)
+    lagrange_poly = lagrange_poly + basis_poly(k) * data_y(k);
+end
+
+%simplifies the polynomial. adds subtracts etc. 
+lagrange_poly = simplify(lagrange_poly);
+
+fprintf('Lagrange polynomial is %s', lagrange_poly)
+
+
+%% Interp1 easier interpolation 
+
+%this function returns an interpolated function. easily. 
+clear all
+clear variables
+close all
+
+data_x = [1, -4, 0]; 
+
+data_y = [3, 13, -23]; 
+
+interp1(data_x, data_y, 4)
+%interp2 gives you data for two variable system. 
+%interp3 gives you three variable. 
+
+% Problem: interpolate surface. 
+[X, Y] = meshgrid(-2:2)
+R = sqrt(X.^2 + Y.^2);
+V = sin(R) ./ R; 
+
+[Xq, Yq] = meshgrid(-2: 0.2 : 2);
+
+ans2 = interp2(X, Y, V, Xq, Yq);
+
+surf(X, Y, V)
+figure
+surf(Xq, Yq, ans2)
+
+
+
+%% Interpolation with Spline 
+
+ 
+clear all; 
+clear variables; 
+close all; 
+
+data_x = [-3, -2, -1, 0, 1,2,3];
+data_y = [-1, -1, -1, 0, 1,1,1]; 
+
+xq = -3:0.1:3; 
+
+ans = spline(data_x, data_y, xq)
+
+plot(data_x, data_y, 'b')
+hold on 
+plot(ans)
+axis square
+hold offnote
+
+
+
+%% Numerical Integration Trapz
+% if y = [c1 , c2 , c2 ] trapz(y) => [trapz(c1), trapz(c2), trapz(c3)]
+%Q = trapz(Y) %unit spacing
+
+% use trapz to calculate integral I = lim([1 5]) (x^2 dx) 
+clear all;
+clear variables; 
+
+x_interval = 1: 5; 
+%x_interval = linspace(1, 5); 
+f = x_interval .^ 2;
+
+trapz_ans = trapz(f); 
+
+% double integration. NEST 
+
+% syntax
+% trapz(interval, function, column/row)
+
+
+% Quad 
+% uses adaptive simpson quadrature
+% quad(function, lim_a, lim_b, tol)
+% dblquad(fun, xmin, xmax, ymin, ymax) for double integration. 
+% fun should be matrix values. 
+% cannot handle infinity. 
+
+% integral 
+% integral(fun, xmin, xmax) 
+% can handle infinity. 
+
+
+% integral2 and integral 3
+% integral2 has same syntax. 
+% integral3 also same but three things 
+% integrand has to be function handle. 
+
+
+
+% int function 
+% computes indefinite integral with symbolic variable. 
+% no inf 
+% syntax int(function, variable to integrate, lim_a, lim_b);
+syms x;
+f = sin(x); 
+int_int = int(f); 
+% can calculate pole of a function by 
+% int(f, x, 0, 2, 'PrincipalValue', true);
+
+
 
 
 %% 1D radioactive decay
@@ -247,10 +399,19 @@ IC = 1;
 plot(X,Y)
 
 
-%% Tic toc 
+%% Some notes 
+% Tic toc 
 % just a note, tic toc is a timimg function 
 % when you call tic it starts the timer 
 % when you call toc it stops the timer and prints the time elapsed. 
+
+% diff can do numerical as well as numerical differentiation. 
+% diff(f, var, n) is the syntax. 
+
+% gradient(F) returns gradient of one dimension partial f by partial x
+% spacing assumed is 1 
+% gradient(F, h) 
+
 
 
 %% coupled ode
@@ -298,6 +459,11 @@ for i =1:n
     fprintf('z(%.2f) = %.4f\n', t(i+1), z(i+1))
 
 end
+
+
+
+%% Composite Trapezoid Rule 
+
 
 
 %% points inside circle x^2 + y^2 =2  
@@ -643,6 +809,9 @@ integrated_value = (intervals) * summed_values / total_points;
 fprintf('Approximated value of the integral= %3.4f', integrated_value); 
 %familiarize yourself with fprintf function. its easier. 
 
+
+%References 
+% a good source: https://www.youtube.com/watch?v=_JIupZJEM-k&list=PLO-6jspot8AIxruWnsX6x2g7-Ri2vo64u
 % visit links 
 % https://en.wikipedia.org/wiki/Monte_Carlo_integration
 % watch this video. https://www.youtube.com/watch?v=MKnjsqYVG4Y
