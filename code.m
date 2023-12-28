@@ -12,10 +12,204 @@
 %lab 20 practice 
 %ode45
 
-
+`
 clc;
 close all; 
 clear all; 
+
+
+%% 1D radioactive decay
+% by Kevin Berwick,
+% based on 'Computational Physics' book by N Giordano and H Nakanishi
+% Section 1.2 p2
+% Solve the Equation dN/dt = -N/tau
+N_uranium_initial = 1000; %initial number of uranium atoms
+npoints = 100; %Discretize time into 100 intervals
+dt = 1e7; % time step in years
+tau=4.4e9; % mean lifetime of 238 U
+N_uranium = zeros(npoints,1); % initializes N_uranium, a vector of dimension npoints X 1,to being
+all zeros
+time = zeros(npoints,1); % this initializes the vector time to being all zeros
+N_uranium(1) = N_uranium_initial; 
+% the initial condition, first entry in the vector N_uranium is N_uranium_initial
+time(1) = 0; %Initialise time
+for step=1:npoints-1 % loop over the timesteps and calculate the numerical solution
+N_uranium(step+1) = N_uranium(step) - (N_uranium(step)/tau)*dt;
+time(step+1) = time(step) + dt;
+end
+% For comparison , calculate analytical solution
+t=0:1e8:10e9;
+N_analytical=N_uranium_initial*exp(-t/tau);
+% Plot both numerical and analytical solution
+plot(time,N_uranium,'r')
+hold on
+plot(t,N_analytical,'b'); %plots the numerical solution in red and the analytical solution in blue
+xlabel('Time in years');
+ylabel('Number of atoms');
+
+
+
+
+%% ODE eular 
+%given that dy/dt + 20y = 7*exp(-0.5*t) compute y(0.2) by taking h= 0.1  
+% y(0) = 5
+% know that tn = t0 + n*h 
+% y0 = 5 
+% t0 = 0 
+% update y0 and t0 in each iter
+%define step size h = b-a / n
+% f = input('enter your functoin: '); 
+
+f = @(t,y) -20*y + 7*exp(0.5*t);
+t0 = 0; 
+y0 = 5; 
+h = 0.02;
+tn = 0.2 % point at which you'd like to evaluate and stop 
+%for iterations 
+% n = b - a / h 
+
+n = (tn - t0)/h; 
+
+%matlab can't evaluate t at zero 
+%so giving initial conditions for the for loop 
+
+t(1) = t0; 
+y(1) = y0; 
+
+for i =1:n
+    y(i+1) = y(i) + h*f(t(i), y(i));
+    t(i+1) = t0 + i*h; 
+    fprintf('y(%.2f) = %.4f\n', t(i+1), y(i+1))
+end
+
+
+
+
+%% RK method 2
+%general equation of runge kutta. 
+% k1 = hf(tn, yn)
+% k2 = hf(tn + h, yn+k1);
+% and yn+1 = yn + 1/2[k1 + k2] 
+
+%given that dy/dy + 20*y = 7*exp(-0.5*t);
+%compute y(0.2) using RK method of order 2. by taking h = 0.1; 
+clc;
+clear all;
+close all; 
+
+f = @(t,y) -20*y + 7*exp(0.5*t);
+t0 = 0; 
+y0 = 5; 
+h = 0.1; 
+tn = 0.2; 
+n = (tn - t0)/ h ; 
+
+
+y(1) = y0; 
+t(1) = t0; 
+
+for i=1:n
+    k1 = h*f(t(i),y(i));
+    t(i+1) = t0 + i*h; 
+    k2 = h*f(t(i+1), y(i) + k1);
+    y(i+1) = y(i) + (1/2)*(k1 + k2); 
+    fprintf('y(%.2f) = %.4f\n', t(i+1),y(i+1))
+end
+
+
+%% What about rk2 for couple DE?
+%lets say we have y''(t) - 0.05y'(t) + 0.15*y(t) = 0 
+%funda is simple. if we have a 2nd order DE 
+%make substituion to convert to single order de y' = z and y'' = z'
+%change the initial conditions accordingly. y'(0) = z(0) and y''(0) = z'(0)
+%define two function that are interlinked. 
+% dy/dt = z and dz/dt = 0.05z - 0.15y
+% note that now our functions will be of f(t,y,z) since interlinked
+%define the start and stop points. 
+%define the step size. 
+%run the loops for n number of steps 
+%only addition for
+clc; 
+clear all;
+close all; 
+
+f = @(t,y,z) z;
+g = @(t,y,z) 0.05*z - 0.15*y;
+
+t0 = 0; 
+y0 = 1; %first dependent variable.
+z0 = 0; %2nd dependent variable. 
+
+h = 0.5;
+tn = 1; % point at which you'd like to evaluate and stop 
+%for iterations 
+% n = b - a / h 
+
+n = (tn - t0)/h; 
+
+%matlab can't evaluate t at zero 
+%so giving initial conditions for the for loop 
+
+t(1) = t0; 
+y(1) = y0;
+z(1) = z0; 
+
+
+%for two equations. 
+for i=1:n
+    t(i+1) = t0 + i*h; 
+
+    k1_f = h*f(t(i),y(i), z(i));
+
+    k1_g = h*g(t(i),y(i), z(i));
+
+    k2_f = h*f(t(i+1), y(i) + k1_f, z(i) + k1_g);
+
+    %notice the k1 not g
+    k2_g = h*g(t(i+1), y(i) + k1_f, z(i) + k1_g);
+    
+    y(i+1) = y(i) + (1/2)*(k1_f + k2_f); 
+    
+    z(i+1) = z(i) + 1/2*(k1_g + k2_g); 
+
+    fprintf('y(%.2f) = %.4f\n', t(i+1),y(i+1))
+    fprintf('z(%.2f) = %.4f\n', t(i+1),z(i+1))
+end
+
+%% RK method 4 
+%equations for rk4 is 
+% k1 = hf(tn,yn);
+% k2 = hf(tn+h/2, yn+ k1/2) 
+% k3 = hf(tn+h/2, yn+ k2/2) 
+% k4 = hf(tn+h, yn + k3)
+% y_n+1 = yn + 1/6 [k1 + 2k2 + 2k3 + k4) ] 
+
+%so similarly. 
+clc; 
+clear all variables; 
+close all; 
+
+f = @(t,y) -20*y + 7*exp(-0.5*t);
+t0 = 0;
+tn = 0.2; 
+y0 = 5; 
+h = 0.01; 
+n = (tn - t0) / h; 
+
+
+y(1) = y0;
+t(1) = t0; 
+
+for i =1:n
+    t(i+1) = t0 + i*h;
+    k1 = h*f(t(i), y(i));
+    k2 = h*f(t(i) + h/2, y(i) + k1/2);
+    k3 = h*f(t(i) + h/2, y(i) + k2/2); 
+    k4 = h*f(t(i) + h, y(i) + k3); 
+    y(i+1) = y(i) + 1/6*(k1 + 2*k2 + 2*k3 + k4);
+    fprintf('y(%.2f) = %.4f\n', t(i+1), y(i+1))
+end
+
 
 %% simple ode
 x_i = 0; 
@@ -53,9 +247,57 @@ IC = 1;
 plot(X,Y)
 
 
+%% Tic toc 
+% just a note, tic toc is a timimg function 
+% when you call tic it starts the timer 
+% when you call toc it stops the timer and prints the time elapsed. 
+
 
 %% coupled ode
-%to be filled. 
+%Through Eular.
+%lets say we have y''(t) - 0.05y'(t) + 0.15*y(t) = 0 
+%funda is simple. if we have a 2nd order DE 
+%make substituion to convert to single order de y' = z and y'' = z'
+%change the initial conditions accordingly. y'(0) = z(0) and y''(0) = z'(0)
+%define two function that are interlinked. 
+% dy/dt = z and dz/dt = 0.05z - 0.15y
+% note that now our functions will be of f(t,y,z) since interlinked
+%define the start and stop points. 
+%define the step size. 
+%run the loops for n number of steps 
+
+
+
+f = @(t,y,z) z;
+g = @(t,y,z) 0.05*z - 0.15*y;
+
+t0 = 0; 
+y0 = 1; %first dependent variable.
+z0 = 0; %2nd dependent variable. 
+
+h = 0.5;
+tn = 1; % point at which you'd like to evaluate and stop 
+%for iterations 
+% n = b - a / h 
+
+n = (tn - t0)/h; 
+
+%matlab can't evaluate t at zero 
+%so giving initial conditions for the for loop 
+
+t(1) = t0; 
+y(1) = y0;
+z(1) = z0; 
+
+for i =1:n
+    %change here from eular is that function havea addition of z in it. 
+    y(i+1) = y(i) + h*f(t(i), y(i), z(i));
+    z(i+1) = z(i) + h*g(t(i), y(i), z(i)); 
+    t(i+1) = t0 + i*h; 
+    fprintf('y(%.2f) = %.4f\n', t(i+1), y(i+1))
+    fprintf('z(%.2f) = %.4f\n', t(i+1), z(i+1))
+
+end
 
 
 %% points inside circle x^2 + y^2 =2  
@@ -188,6 +430,95 @@ r = (x^.2 / 4) + y.^2;
 %% lab 26 
 
 %% lab 26 random walk in 1 dimension
+% method taught by sir. comparitively easier. 
+steps = 100; %num of steps to walk 
+probRight = 0.5 %probabillity of moving right in each step
+
+
+% Initialize position array 
+position = zeros(1, steps +1);
+
+for step = 2:steps + 1
+    randomNum = rand(); 
+
+    if randomNum < probRight
+        position(step) = position(step - 1) + 1; 
+    else
+        position(step) = position(step -1) - 1; 
+    end
+end
+
+%plot the random walk 
+figure; 
+plot(0:steps, position, 'o', 'LineWidth',2);
+grid on; 
+positiveSteps = position(2:end) > position(1:end-1);
+negetiveSteps = position(2:end) < position(1:end-1);
+
+hold on; 
+plot(find([0 positiveSteps]), position([1 positiveSteps]), 'go', 'MarkerSize', 8);
+plot(find([0 negetiveSteps]), position([1 negetiveSteps]), 'ro', 'MarkerSize', 8);
+
+hold off; 
+
+%% easier random walk 
+total_step = 20;
+x0 = 0;
+y0 = 0;
+tx = 0.2;
+ty = 0;
+
+plot(x0, y0, 'b')
+xlim([-1, 1])
+ylim([-0.2, 0.2])
+set(gca, 'XTickLabel', [], 'YTickLabel', [])  % Fix: use 'gca' to access the current axes
+title('Starting Point')
+hold on
+pause(1)  % Fix: use parentheses for the pause function
+
+for i = 1:tot_step
+    r = rand;
+    if r < 0.5
+        quiver(x0, y0, tx, ty, 0, 'b')
+        
+        x0 = x0 + tx;
+    else
+        quiver(x0, y0, -tx, ty, 0, 'm')
+        x0 = x0 - tx;  % Fix: move left, so subtract tx
+    end
+    hold on
+    pause(1)  % Fix: use parentheses for the pause function
+end
+%%  not taught by professor. harder
+A = rand(1,5);
+i = 1;
+a = 0.5;
+ht = .5;
+rightt = [];
+leftt = [];
+while i<=length(A)
+    if A(i)<.5
+        b = a + .1;
+        rightt(i) = A(i);
+        annotation('arrow',[b,a],[ht,ht],'color','b')
+        text(a,ht,num2str(i))
+        a = b;
+    else
+        b = a - .1;
+        leftt(i) = A(i);
+        annotation('arrow',[b,a],[ht,ht],'color','r')
+        a = b;
+        text(a,ht,num2str(i))
+    end
+    i = i+1;
+    pause(2)
+end
+grid on
+disp(A)
+disp(rightt)
+disp(leftt)
+
+
 % lab 26 and 27 are almost same. 
 % supporting material not present. 
 
